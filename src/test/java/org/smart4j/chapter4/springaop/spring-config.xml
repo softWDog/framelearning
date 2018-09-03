@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--动态去扫描Bean-->
+    <context:component-scan base-package="org.smart4j.chapter4"/>
+
+    <!--织入增强，对方法的增强-->
+    <bean id="helloProxy" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="interfaces" value="org.smart4j.chapter4.common.Hello"/>
+        <property name="target" ref="helloImpl"/>
+        <property name="interceptorNames">
+            <list>
+                <value>helloBeforeAndAfterAdvice</value>
+            </list>
+        </property>
+    </bean>
+    <!--引入增强，动态的让类实现一个接口-->
+    <bean id="helloProxy1" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="interfaces" value="org.smart4j.chapter4.common.Apology"/>
+        <property name="target" ref="helloImpl"/>
+        <property name="interceptorNames" value="helloIntroAdvice"/>
+        <property name="proxyTargetClass" value="true"/>
+    </bean>
+    <!--Spring AOP对特定方法进行拦截。1.先配置advisor 2.然后再将advisor配置到代理类中-->
+    <bean id="helloAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+        <property name="advice" ref="helloBeforeAndAfterAdvice"/>
+        <property name="pattern" value="org.smart4j.chapter4.common.HelloImpl.good.*"/>
+    </bean>
+    <bean id="helloProxy2" class="org.springframework.aop.framework.ProxyFactoryBean">
+        <property name="target" ref="helloImpl"/>
+        <property name="interceptorNames" value="helloAdvisor"/>
+        <property name="proxyTargetClass" value="true"/>
+    </bean>
+
+    <!--自动代理，通过bean的名称来自动代理-->
+    <bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
+        <property name="beanNames" value="*Auto"/>
+        <property name="interceptorNames" value="helloBeforeAndAfterAdvice"/>
+        <property name="optimize" value="true"/>
+    </bean>
+
+</beans>
